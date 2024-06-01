@@ -2,6 +2,9 @@
   "name": "seoul",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "compile": "bun build index.ts --outfile bin/seoul-client --compile"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
