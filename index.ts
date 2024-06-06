@@ -79,7 +79,7 @@ async function getAndRunRemoteCommand() {
         body: JSON.stringify({
           commandRan: command,
           output: proc.stdout ? proc.stdout.toString() : proc.stderr.toString(),
-          error: proc.stderr ? "True" : "False",
+          error: proc.stderr ? "True" : "False", // TODO: Figure out why this is returning true when output is returned
         }),
       });
     }
